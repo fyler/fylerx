@@ -21,7 +21,7 @@ defmodule Fyler.ModelCase do
       import Ecto
       import Ecto.Changeset
       import Ecto.Query, only: [from: 1, from: 2]
-      import Fyler.ModelCase, except: [build: 2]
+      import Fyler.ModelCase
       import Fyler.Factory
     end
   end

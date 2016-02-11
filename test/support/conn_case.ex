@@ -26,6 +26,8 @@ defmodule Fyler.ConnCase do
       import Ecto.Query, only: [from: 1, from: 2]
 
       import Fyler.Router.Helpers
+      import Fyler.ConnCase
+      import Fyler.Factory
 
       # The default endpoint for testing
       @endpoint Fyler.Endpoint
@@ -38,5 +40,14 @@ defmodule Fyler.ConnCase do
     end
 
     {:ok, conn: Phoenix.ConnTest.conn()}
+  end
+
+  def api_conn() do
+    Phoenix.ConnTest.conn()
+  end
+
+  def api_conn(token, realm \\ "Bearer") do
+    Phoenix.ConnTest.conn()
+    |> Phoenix.ConnTest.put_req_header("authorization", realm <> " " <> token)
   end
 end
