@@ -14,6 +14,9 @@ config :fyler, Fyler.Endpoint,
   pubsub: [name: Fyler.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
+config :joken,
+  secret_key: "123"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

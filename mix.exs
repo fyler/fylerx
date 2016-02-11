@@ -17,14 +17,19 @@ defmodule Fyler.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Fyler, []},
-     applications: [:phoenix, :cowboy, :logger,
-                    :phoenix_ecto, :postgrex, :comeonin, :ex_machina]]
+    [
+      mod: {Fyler, []},
+      applications: app_list(Mix.env)
+    ]
   end
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
   defp elixirc_paths(_),     do: ["lib", "web"]
+
+  defp app_list(:test), do: [:ex_machina | app_list]
+  defp app_list(_),     do: app_list
+  defp app_list, do: [:phoenix, :cowboy, :logger, :phoenix_ecto, :postgrex, :comeonin]
 
   # Specifies your project dependencies.
   #
@@ -35,6 +40,8 @@ defmodule Fyler.Mixfile do
      {:phoenix_ecto, "~> 2.0"},
      {:cowboy, "~> 1.0"},
      {:comeonin, "~>1.0.2"},
+     {:joken, "~>1.1.0"},
+     {:secure_random, "~> 0.2"},
      {:ex_machina, "~> 0.6.1", only: :test}]
   end
 

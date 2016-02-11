@@ -1,7 +1,7 @@
 defmodule Fyler.Repo.Migrations.Users do
   use Ecto.Migration
 
-  def change do
+  def up do
     create table(:users) do
       add :name, :string
       add :email, :string
@@ -10,6 +10,12 @@ defmodule Fyler.Repo.Migrations.Users do
       timestamps
     end
 
-    execute("CREATE UNIQUE INDEX index_users_on_email ON users (lower(email))")
+    execute "CREATE UNIQUE INDEX index_users_on_email ON users (lower(email))"
+  end
+
+  def down
+    drop table(:users)
+    
+    execute "DROP INDEX index_users_on_email"
   end
 end

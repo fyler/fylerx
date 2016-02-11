@@ -7,7 +7,8 @@ defmodule Fyler.Factory do
     %User{
       name: sequence(:name, &"user-#{&1}"),
       email: sequence(:email, &"email-#{&1}@fyler.com"),
-      password: "qwerty"
+      password: "qwerty",
+      encrypted_password: Comeonin.Bcrypt.hashpwsalt("qwerty")
     }
   end
 end

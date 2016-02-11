@@ -9,7 +9,7 @@ defmodule Fyler.User do
     field :email, :string
     field :encrypted_password, :string
     field :password, :string, virtual: true
-
+    field :authentication_tokens, {:array, :string}, default: []
     timestamps
   end
 
@@ -26,7 +26,7 @@ defmodule Fyler.User do
     |> maybe_update_password
   end
 
-  def login_changeset(model), do: model |> cast(%{}, ~w(), ~w(email password))
+  def login_changeset(nil, _), do: %User{} |> cast(%{}, ~w(email password), ~w())
 
   def login_changeset(model, params) do
     model
