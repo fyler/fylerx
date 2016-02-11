@@ -11,7 +11,7 @@ defmodule Fyler.Authenticator do
   * {:ok, token} if the user is found. The token has to be send in the "authorization" header on following requests: "Authorization: Bearer \#{token}"
   * {:error, message} if the user was not found
   """
-  def authenticate(%{ email: email } = params) do
+  def authenticate(%{ "email" => email } = params) do
     user = User.from_email(email)
     changeset = User.login_changeset(user, params)
 

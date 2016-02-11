@@ -9,6 +9,5 @@ defmodule Fyler.Router do
     pipe_through :api
 
     post "/auth", SessionsController, :create, as: "login"
-    delete "/auth", SessionsController, :delete, as: "logout"
   end
 end
