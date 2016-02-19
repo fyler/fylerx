@@ -9,7 +9,6 @@ defmodule Fyler.User do
     field :email, :string
     field :encrypted_password, :string
     field :password, :string, virtual: true
-    field :authentication_tokens, {:array, :string}, default: []
     timestamps
   end
 
