@@ -5,9 +5,7 @@ defmodule Fyler.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", Fyler do
-    pipe_through :api
+  pipe_through :api
 
-    post "/auth", SessionsController, :create, as: "login"
-  end
+  post "/auth", Fyler.SessionsController, :create, as: "login"
 end
