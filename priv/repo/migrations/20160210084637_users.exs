@@ -13,7 +13,7 @@ defmodule Fyler.Repo.Migrations.Users do
     execute "CREATE UNIQUE INDEX index_users_on_email ON users (lower(email))"
   end
 
-  def down
+  def down do
     drop table(:users)
     
     execute "DROP INDEX index_users_on_email"

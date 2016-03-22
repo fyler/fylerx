@@ -11,6 +11,11 @@ defmodule Fyler.Project do
 
   @required_fields ~w(name)
   @optional_fields ~w(settings api_key)
+  @update_fields ~w(settings)
+
+  def count_records do
+    Fyler.Repo.one(from p in Fyler.Project, select: count(p.id)) 
+  end
 
   @doc """
   Creates a changeset based on the `model` and `params`.
@@ -21,5 +26,27 @@ defmodule Fyler.Project do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
+  end
+
+  def create_changeset(model, params \\ :empty) do
+    model
+    |> cast(Map.merge(Fyler.MapUtils.keys_to_atoms(params), %{api_key: Fyler.Token.generate}), @required_fields, @optional_fields)
+    |> unique_constraint(:api_key)
+  end
+
+  def update_changeset(model, params \\ :empty) do
+    model
+    |> cast(params, @required_fields, @update_fields)
+  end
+
+  def refresh_changeset(model) do
+    model
+    |> cast(%{api_key: Fyler.Token.generate}, ["api_key"], [])
+    |> unique_constraint(:api_key)
+  end
+
+  def revoke_changeset(model) do
+    model
+    |> cast(%{api_key: nil}, [], ["api_key"])
   end
 end

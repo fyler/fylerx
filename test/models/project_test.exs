@@ -15,4 +15,9 @@ defmodule Fyler.ProjectTest do
     changeset = Project.changeset(%Project{}, @invalid_attrs)
     refute changeset.valid?
   end
+
+  test "create_changeset with valid attributes" do
+    changeset = Project.create_changeset(%Project{}, %{ "name" => "some name", "settings" => %{}})
+    assert changeset.valid?
+  end
 end

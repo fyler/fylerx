@@ -39,7 +39,7 @@ defmodule Fyler.Mixfile do
      {:postgrex, ">= 0.0.0"},
      {:phoenix_ecto, "~> 2.0"},
      {:cowboy, "~> 1.0"},
-     {:comeonin, "~>1.0.2"},
+     {:comeonin, "~>2.0"},
      {:joken, "~>1.1.0"},
      {:secure_random, "~> 0.2"},
      {:ex_machina, "~> 0.6.1", only: :test}]
