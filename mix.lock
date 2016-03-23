@@ -1,7 +1,7 @@
 %{"base64url": {:hex, :base64url, "0.0.1"},
   "certifi": {:hex, :certifi, "0.3.0"},
   "combine": {:hex, :combine, "0.7.0"},
-  "comeonin": {:hex, :comeonin, "1.0.5"},
+  "comeonin": {:hex, :comeonin, "2.2.0"},
   "connection": {:hex, :connection, "1.0.2"},
   "cowboy": {:hex, :cowboy, "1.0.4"},
   "cowlib": {:hex, :cowlib, "1.0.2"},

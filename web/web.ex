@@ -56,6 +56,13 @@ defmodule Fyler.Web do
     end
   end
 
+  def view do
+    quote do
+      use Phoenix.View, root: "web/templates"
+      import Fyler.Router.Helpers
+    end
+  end
+
   @doc """
   When used, dispatch to the appropriate controller/view/etc.
   """
