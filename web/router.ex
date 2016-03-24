@@ -5,8 +5,14 @@ defmodule Fyler.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :admin do
+    plug Fyler.Plugs.AdminAuth
+  end
+
   scope "/admin" do
     pipe_through :api
+    pipe_through :admin
+    
     resources "/projects", Fyler.ProjectsController
     patch "/projects/:id/refresh", Fyler.ProjectsController, :refresh
     patch "/projects/:id/revoke", Fyler.ProjectsController, :revoke
