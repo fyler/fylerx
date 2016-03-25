@@ -13,6 +13,7 @@ config :logger, level: :warn
 config :fyler, Fyler.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "fyler",
+  password: "fyler",
   database: "fyler_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
