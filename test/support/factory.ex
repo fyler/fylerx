@@ -4,6 +4,7 @@ defmodule Fyler.Factory do
   
   alias Fyler.User
   alias Fyler.Project
+  alias Fyler.Task
 
   def factory(:user) do
     %User{
@@ -19,6 +20,13 @@ defmodule Fyler.Factory do
       name: sequence(:name, &"project-#{&1}"),
       settings: %{},
       api_key: Fyler.Token.generate()
+    }
+  end
+
+  def factory(:task) do
+    %Task{
+      source: "http://foo.example.com/files/foo.avi",
+      type: "video"
     }
   end
 end
