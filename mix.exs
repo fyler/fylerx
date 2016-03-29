@@ -42,6 +42,7 @@ defmodule Fyler.Mixfile do
      {:comeonin, "~>2.0"},
      {:joken, "~>1.1.0"},
      {:secure_random, "~> 0.2"},
+     {:scrivener, "~> 1.0"},
      {:ex_machina, "~> 0.6.1", only: :test}]
   end
 
