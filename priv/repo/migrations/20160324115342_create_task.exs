@@ -13,6 +13,7 @@ defmodule Fyler.Repo.Migrations.CreateTask do
       add :worker_id, :string
       add :data, :map
       add :result, :map
+      add :project_id, :integer
 
       # stats
       add :queue_time, :integer
@@ -23,10 +24,12 @@ defmodule Fyler.Repo.Migrations.CreateTask do
 
       timestamps
     end
+
+    create index(:tasks, [:project_id])
   end
 
   def down do
-    execute "DROP EXTENSION IF EXISTS \"uuid-ossp\""
     drop table(:tasks)
+    execute "DROP EXTENSION IF EXISTS \"uuid-ossp\""
   end
 end

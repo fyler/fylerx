@@ -1,5 +1,6 @@
 defmodule Fyler.Plugs.AdminAuth do
   import Fyler.ControllerHelpers
+  import Fyler.Plug.Util
   import Plug.Conn
 
   def init(opts) do
@@ -23,12 +24,4 @@ defmodule Fyler.Plugs.AdminAuth do
   defp auth_with_token(token) do
     Fyler.Authenticator.verify(token)
   end
-
-  defp token_from_conn(conn) do
-    get_req_header(conn, "authorization")
-    |> token_from_header
-  end
-
-  defp token_from_header(["Bearer " <> token]), do: {:ok, token}
-  defp token_from_header(_), do: {:error, :token_not_present}
 end
