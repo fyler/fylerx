@@ -6,7 +6,7 @@ defmodule Fyler.Repo.Migrations.CreateTask do
 
     create table(:tasks, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("uuid_generate_v4()")
-      add :status, :string, default: "idle"
+      add :status, :string
       add :type, :string
       add :category, :string
       add :source, :string
