@@ -2,11 +2,8 @@ defmodule Fyler.Task do
   use Fyler.Web, :model
 
   @primary_key {:id, :binary_id, read_after_writes: true}
-  @foreign_key_type :binary_id
 
   schema "tasks" do
-    belongs_to :project, Project
-
     field :status, :string
     field :type, :string
     field :category, :string
@@ -19,11 +16,22 @@ defmodule Fyler.Task do
     field :process_time, :integer
     field :upload_time, :integer
     field :total_time, :integer
+
+    belongs_to :project, Fyler.Project
     timestamps
   end
 
-  @required_fields ~w(source type category)
-  @optional_fields ~w(data download_time worker_id result)
+  @statuses default: "idle",
+            queued: "queued",
+            downloading: "downloading",
+            processing: "processing",
+            uploading: "uploading",
+            completed: "completed",
+            error: "error",
+            aborted: "aborted"
+
+  @required_fields ~w(project_id source type category)
+  @optional_fields ~w(data)
 
   @doc """
   Scopes methods
@@ -68,10 +76,12 @@ defmodule Fyler.Task do
 
   def create_changeset(model, params \\ :empty) do
     task_params = Fyler.MapUtils.keys_to_atoms(params)
+
     model
     |> cast(Map.merge(task_params, build_category(task_params[:type])), @required_fields, @optional_fields)
     |> validate_format(:source, ~r/^(([a-zA-Z0-9]+\:\/\/)?[a-zA-Z0-9]+(?:(?:\.|\-)[a-zA-Z0-9]+)+(?:\:\d+)?(?:\/[\w\-]+)*(?:\/?|\/\w+\.[a-zA-Z]{2,4}(?:\?[\w]+\=[\w\-]+)?)?(?:\&[\w]+\=[\w\-]+)*)$/)
     |> validate_inclusion(:type, types_list)
+    |> put_change(:status, @statuses[:default])
     |> prepare_changes(fn(c) -> delete_change(c, :id) end)
   end
 

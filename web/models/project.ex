@@ -6,6 +6,7 @@ defmodule Fyler.Project do
     field :api_key, :string
     field :settings, :map
 
+    has_many :tasks, Fyler.Task
     timestamps
   end
 

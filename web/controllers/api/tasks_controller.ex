@@ -8,8 +8,7 @@ defmodule Fyler.Api.TasksController do
   end
 
   def create(conn, %{"task" => params}) do
-    changeset = Task.create_changeset(%Task{}, params)
-    
+    changeset = Task.create_changeset(%Task{}, Map.merge(params, %{project_id: project_id(conn)}))
     case Repo.insert(changeset) do
       {:ok, task} ->
         render conn, "create.json", data: task
@@ -18,5 +17,9 @@ defmodule Fyler.Api.TasksController do
         |> put_status(403)
         |> render("error.json", changeset: changeset)
     end
+  end
+
+  defp project_id(conn) do
+    conn.assigns[:current_project_id]
   end
 end
