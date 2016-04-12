@@ -21,6 +21,8 @@ defmodule Fyler.Web do
       use Ecto.Schema
       use Ecto.Model.Callbacks
 
+      alias Fyler.Repo
+      
       import Ecto
       import Ecto.Changeset
       import Ecto.Query

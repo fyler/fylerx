@@ -79,10 +79,87 @@ defmodule Fyler.Task do
 
     model
     |> cast(Map.merge(task_params, build_category(task_params[:type])), @required_fields, @optional_fields)
-    |> validate_format(:source, ~r/^(([a-zA-Z0-9]+\:\/\/)?[a-zA-Z0-9]+(?:(?:\.|\-)[a-zA-Z0-9]+)+(?:\:\d+)?(?:\/[\w\-]+)*(?:\/?|\/\w+\.[a-zA-Z]{2,4}(?:\?[\w]+\=[\w\-]+)?)?(?:\&[\w]+\=[\w\-]+)*)$/)
+    |> validate_format(:source, ~r/^(([a-zA-Z0-9]+\:\/\/)?[a-zA-Z0-9]+((?:(?:\.|\-)[a-zA-Z0-9]+)?)+(?:\:\d+)?(?:\/[\w\-]+)*(?:\/?|\/\w+\.[a-zA-Z0-9]{2,4}(?:\?[\w]+\=[\w\-]+)?)?(?:\&[\w]+\=[\w\-]+)*)$/)
     |> validate_inclusion(:type, types_list)
     |> put_change(:status, @statuses[:default])
     |> prepare_changes(fn(c) -> delete_change(c, :id) end)
+  end
+
+  def transform(model) do
+    %{
+      id: model.id,
+      name: Fyler.UrlHelper.file_name(model.source),
+      extension: Fyler.UrlHelper.file_ext(model.source),
+      category: model.category,
+      type: model.type,
+      source: transform_url(:source, model),
+      output: transform_url(:output, model),
+      timeout: 3600,
+      options: transform_data(model)
+    }
+  end
+
+  defp transform_url(:source, model) do
+    data = parse_url(model.source)
+    
+    case data[:type] do
+      "s3" -> data |> Map.put(:credentials, aws_credentials(model))
+      _ -> data
+    end
+  end
+
+  defp transform_url(:output, model) do
+    if model.data && Map.has_key?(model.data, "output") do
+      data = parse_url(model.data["output"])
+      if data[:type] == "s3" do
+        Map.put(data, :credentials, aws_credentials(model))
+      end
+    else
+      data = parse_url(model.source)
+      items = String.split(data[:prefix], "/")
+      output = data |> Map.put(:prefix, Enum.join(List.delete_at(items, length(items) - 1), "/"))
+      if data[:type] == "s3", do: Map.put(output, :credentials, aws_credentials(model))
+    end
+  end
+
+  defp parse_url(url) do
+    out = %{}
+    
+    [type, path] = case String.split(url, "://") do
+                     [protocol, uri] -> [protocol, uri]
+                     [uri] -> [nil, uri]
+                   end
+
+    case type do
+      "s3" ->
+        # delete last element and join string again
+        # for example s3://testbucket/folder/file.mp3
+        # bucket is <testbucket>
+        # prefix is <folder/file.mp3>
+        words = String.split(path, "/")
+        
+        out
+        |> Map.put(:type, type)
+        |> Map.put(:bucket, hd(words))
+        |> Map.put(:prefix, Enum.join(tl(words), "/"))
+      nil ->
+        Map.put(out, :prefix, path)
+    end
+  end
+
+  defp aws_credentials(model) do
+    project = Repo.get(Fyler.Project, model.project_id)
+
+    %{
+      aws_id: project.settings["aws_id"],
+      aws_secret: project.settings["aws_secret"],
+      aws_region: project.settings["aws_region"]
+    }
+  end
+
+  # TODO: transform presets
+  defp transform_data(model) do
+    model.data
   end
 
   defp build_category(nil), do: %{category: nil}

@@ -59,7 +59,7 @@ defmodule Fyler.TaskTest do
   end
 
   test "#create_changeset when URL is invalid" do
-    params = %{project_id: create(:project).id, source: "foo/bar", type: "video"}
+    params = %{project_id: create(:project).id, source: ".foo/bar", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
     assert changeset.errors == [source: "has invalid format"]
@@ -69,5 +69,58 @@ defmodule Fyler.TaskTest do
     params = %{project_id: create(:project).id, source: "s3://foo.example.com/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     assert changeset.valid?
+  end
+
+  test "#transform with default output" do
+    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+    
+    id = task.id
+
+    %{id: ^id, name: name, extension: extension, source: source, output: output} = Task.transform(task)
+
+    assert source[:bucket] == "buckettest"
+    assert source[:prefix] == "my/files/foo.avi"
+    assert source[:type] == "s3"
+
+    assert output[:bucket] == "buckettest"
+    assert output[:prefix] == "my/files"
+    assert output[:type] == "s3"
+
+    assert source[:credentials] == output[:credentials]
+    assert source[:credentials][:aws_id] == "123"
+    assert source[:credentials][:aws_secret] == "dais0f9sd"
+
+    assert name == "foo"
+    assert extension == "avi"
+  end
+
+  test "#transform with output" do
+    params = %{
+      project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id,
+      source: "s3://buckettest/my/files/foo.avi",
+      data: %{"output" => "s3://buckettest/my/files/converted"},
+      type: "video"
+    }
+
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    assert %{output: output} = Task.transform(task)
+    assert output[:bucket] == "buckettest"
+    assert output[:prefix] == "my/files/converted"
+    assert output[:type] == "s3"
+    assert output[:credentials][:aws_id] == "123"
+    assert output[:credentials][:aws_secret] == "dais0f9sd"
+  end
+
+  test "#transform when source without protocol" do
+    params = %{project_id: create(:project).id, source: "buckettest.com/my/files/foo.avi", type: "video"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    assert %{source: source, output: output} = Task.transform(task)
+    assert source[:prefix] == "buckettest.com/my/files/foo.avi"
   end
 end
