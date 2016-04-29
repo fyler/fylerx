@@ -25,6 +25,7 @@ config :phoenix, :stacktrace_depth, 20
 config :fyler, Fyler.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "fyler",
+  password: "fyler",
   database: "fyler_dev",
   hostname: "localhost",
   pool_size: 10

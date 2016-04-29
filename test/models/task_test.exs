@@ -123,4 +123,29 @@ defmodule Fyler.TaskTest do
     assert %{source: source, output: output} = Task.transform(task)
     assert source[:prefix] == "buckettest.com/my/files/foo.avi"
   end
+
+  test "#makr_as change status" do
+    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    {:ok, updated} = Task.mark_as(:queued, task)
+    assert updated.status == "queued"
+  end
+
+  test "#makr_as does not change status if it's undefined" do
+    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    assert {:error, _} = Task.mark_as(:barbaz, task)
+  end
+
+  test "#send_to_queue" do
+    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    assert :ok = Task.send_to_queue(task)
+  end
 end

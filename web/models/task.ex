@@ -85,6 +85,16 @@ defmodule Fyler.Task do
     |> prepare_changes(fn(c) -> delete_change(c, :id) end)
   end
 
+  def send_to_queue(model) when is_map(model) do
+    Fyler.TaskQueueService.publish(transform(model))
+  end
+
+  def update_status_changeset(model, params \\ :empty) do
+    model
+    |> cast(Fyler.MapUtils.keys_to_atoms(params), [:status], [])
+    |> validate_inclusion(:status, Keyword.values(@statuses))
+  end
+
   def transform(model) do
     %{
       id: model.id,
@@ -97,6 +107,16 @@ defmodule Fyler.Task do
       timeout: 3600,
       options: transform_data(model)
     }
+  end
+
+  def mark_as(status, id) when is_binary(id) do
+    task = Repo.get_by(Fyler.Task, id: id)
+    mark_as(status, task)
+  end
+
+  def mark_as(status, model) when is_atom(status) do
+    changeset = update_status_changeset(model, %{status: @statuses[status]})
+    Repo.update(changeset)
   end
 
   defp transform_url(:source, model) do
