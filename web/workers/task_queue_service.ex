@@ -14,17 +14,31 @@ defmodule Fyler.TaskQueueService do
     GenServer.cast(Fyler.TaskQueueService, {:publish, task})
   end
 
+  def count do
+    GenServer.call(Fyler.TaskQueueService, :count)
+  end
+
   ## Server
 
   def init(:ok) do
     amqp = Exrabbit.Utils.connect(Application.get_env(:fyler, :rabbit_settings))
     channel = Exrabbit.Utils.channel amqp
-    {:ok, %{connection: amqp, channel: channel}}
+    {:ok, %{connection: amqp, channel: channel, count: 0}}
+  end
+
+  def handle_call(:count, _from, state) do
+    {:reply, state[:count], state}
   end
 
   def handle_cast({:publish, task}, state) when is_map(task) do
-    send_to_queue(task, state[:channel])
-    {:noreply, state}
+    new_state = case send_to_queue(task, state[:channel]) do
+      {:error, _} -> 
+        state
+      _ ->
+        %{state | count: (state[:count] + 1)}
+    end
+
+    {:noreply, new_state}
   end
 
   def terminate(_reason, state) do

@@ -13,7 +13,8 @@ defmodule Fyler do
       supervisor(Fyler.Repo, []),
       # Here you could define other workers and supervisors as children
       # worker(Fyler.Worker, [arg1, arg2, arg3]),
-      worker(Fyler.TaskQueueService, [Fyler.TaskQueueService])
+      worker(Fyler.TaskQueueService, [Fyler.TaskQueueService]),
+      worker(Fyler.TaskStatusSubscriber, [Fyler.TaskStatusSubscriber])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

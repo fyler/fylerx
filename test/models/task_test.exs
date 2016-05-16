@@ -1,7 +1,7 @@
 defmodule Fyler.TaskTest do
-  use Fyler.ModelCase
-
-  alias Fyler.Task
+  use     Fyler.ModelCase
+  import  Fyler.ExUnit.Helpers
+  alias   Fyler.Task
 
   @valid_create_attrs %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"}
 
@@ -124,7 +124,7 @@ defmodule Fyler.TaskTest do
     assert source[:prefix] == "buckettest.com/my/files/foo.avi"
   end
 
-  test "#makr_as change status" do
+  test "#mark_as change status" do
     params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
@@ -133,7 +133,7 @@ defmodule Fyler.TaskTest do
     assert updated.status == "queued"
   end
 
-  test "#makr_as does not change status if it's undefined" do
+  test "#mark_as does not change status if it's undefined" do
     params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
@@ -145,7 +145,18 @@ defmodule Fyler.TaskTest do
     params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
-
+    
     assert :ok = Task.send_to_queue(task)
+  end
+
+  test "#send_to_queue changes count" do
+    params = %{project_id: create(:project, settings: %{aws_id: "594", aws_secret: "secret_key1223"}).id, source: "s3://testbucket/music/metallica.mp3", type: "audio"}
+    changeset = Task.create_changeset(%Task{}, params)
+    {:ok, task} = Repo.insert(changeset)
+
+    event = fn -> Task.send_to_queue(task) end
+    change = fn -> Fyler.TaskQueueService.count end
+
+    assert is_changed(event, change, by: 1)
   end
 end

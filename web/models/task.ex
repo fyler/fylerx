@@ -1,6 +1,6 @@
 defmodule Fyler.Task do
   use Fyler.Web, :model
-
+  require IEx
   @primary_key {:id, :binary_id, read_after_writes: true}
 
   schema "tasks" do
@@ -85,6 +85,21 @@ defmodule Fyler.Task do
     |> prepare_changes(fn(c) -> delete_change(c, :id) end)
   end
 
+  def status_changeset(model, params \\ :empty, req_fields \\ [], opt_fields \\ []) do
+    model |> cast(Fyler.MapUtils.keys_to_atoms(params), req_fields, opt_fields)
+  end
+
+  def create_and_send_to_queue(model, params \\ :empty) do
+    changeset = create_changeset(model, params)
+    case Repo.insert(changeset) do
+      {:ok, task} ->
+        send_to_queue(task)
+        {:ok, task}
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
   def send_to_queue(model) when is_map(model) do
     Fyler.TaskQueueService.publish(transform(model))
   end
@@ -110,13 +125,52 @@ defmodule Fyler.Task do
   end
 
   def mark_as(status, id) when is_binary(id) do
-    task = Repo.get_by(Fyler.Task, id: id)
-    mark_as(status, task)
+    case Repo.get_by(Fyler.Task, id: id) do
+      nil -> {:error, :task_not_found}
+      task -> mark_as(status, task)
+    end
   end
 
   def mark_as(status, model) when is_atom(status) do
     changeset = update_status_changeset(model, %{status: @statuses[status]})
     Repo.update(changeset)
+  end
+
+  def change_status(data) do
+    case Repo.get_by(Fyler.Task, id: data[:id]) do
+      nil -> {:error, :task_not_found}
+      task ->
+        change_status(data, task)
+    end
+  end
+
+  def change_status(data, task) do
+    case data[:status] do
+      "downloading" ->
+        handle_downloading(data, task)
+      "processing" ->
+        handle_processing(data, task)
+      "uploading" ->
+        handle_downloading(data, task)
+      "completed" ->
+        handle_downloading(data, task)
+      "error" ->
+        handle_downloading(data, task)
+      "aborted" ->
+        handle_downloading(data, task)
+    end
+  end
+
+  defp handle_downloading(data, task) do
+    inserted_sec = :calendar.datetime_to_gregorian_seconds(Ecto.DateTime.to_erl(task.inserted_at))
+    now_sec = :calendar.datetime_to_gregorian_seconds(:calendar.now_to_datetime(:erlang.timestamp()))
+    queue_time = now_sec - inserted_sec
+    changeset = status_changeset(task, %{worker_id: data[:worker_id], status: data[:status], queue_time: queue_time}, [:status, :worker_id, :queue_time])
+    {:ok, task} = Repo.update(changeset)   
+  end
+
+  def handle_processing(data, task) do
+    # ...
   end
 
   defp transform_url(:source, model) do

@@ -12,7 +12,7 @@ defmodule Fyler.Api.TasksControllerTest do
   test "POST #create", %{auth_conn: auth_conn} do
     params = %{
       type: "video",
-      source: "http://foo.example.com/files/foo.avi",
+      source: "s3://mybacket/films/film1.avi",
       data: %{ format: "mp4" }
     }
 
@@ -23,7 +23,7 @@ defmodule Fyler.Api.TasksControllerTest do
   test "POST create (with database assertion)", %{auth_conn: auth_conn} do
     params = %{
       type: "video",
-      source: "http://foo.example.com/files/foo.avi",
+      source: "s3://mybacket/films/film2.avi",
       data: %{ format: "mp4" }
     }
 
