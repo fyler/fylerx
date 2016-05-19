@@ -36,7 +36,6 @@ defmodule Fyler.TaskStatusSubscriber do
         ack state[:channel], tag
         handle_payload(payload)
     end
-    IO.inspect %{state | count: (state[:count] + 1)}
     {:noreply, %{state | count: (state[:count] + 1)}}
   end
 

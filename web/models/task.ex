@@ -12,10 +12,12 @@ defmodule Fyler.Task do
     field :data, :map
     field :result, :map
     field :queue_time, :integer
+    field :file_size, :integer
     field :download_time, :integer
     field :process_time, :integer
     field :upload_time, :integer
     field :total_time, :integer
+    field :total_task_time, :integer
 
     belongs_to :project, Fyler.Project
     timestamps
@@ -151,26 +153,71 @@ defmodule Fyler.Task do
       "processing" ->
         handle_processing(data, task)
       "uploading" ->
-        handle_downloading(data, task)
+        handle_uploading(data, task)
       "completed" ->
-        handle_downloading(data, task)
+        handle_completed(data, task)
       "error" ->
-        handle_downloading(data, task)
+        handle_error(data, task)
       "aborted" ->
-        handle_downloading(data, task)
+        handle_aborted(data, task)
     end
   end
 
-  defp handle_downloading(data, task) do
+  defp handle_downloading(payload, task) do
+    data = payload[:data]
     inserted_sec = :calendar.datetime_to_gregorian_seconds(Ecto.DateTime.to_erl(task.inserted_at))
     now_sec = :calendar.datetime_to_gregorian_seconds(:calendar.now_to_datetime(:erlang.timestamp()))
     queue_time = now_sec - inserted_sec
-    changeset = status_changeset(task, %{worker_id: data[:worker_id], status: data[:status], queue_time: queue_time}, [:status, :worker_id, :queue_time])
-    {:ok, task} = Repo.update(changeset)   
+    changeset = status_changeset(task, %{worker_id: data[:worker_id], status: payload[:status], queue_time: queue_time}, [:status, :worker_id, :queue_time])
+    {:ok, task} = Repo.update(changeset)
   end
 
-  def handle_processing(data, task) do
-    # ...
+  defp handle_processing(payload, task) do
+    data = payload[:data]
+    changeset = status_changeset(task, %{file_size: data[:size], status: payload[:status], download_time: data[:download_time]}, [:status, :download_time, :file_size])    
+    {:ok, task} = Repo.update(changeset)
+  end
+
+  defp handle_uploading(payload, task) do
+    data = payload[:data]
+    changeset = status_changeset(task, %{status: payload[:status], process_time: data[:process_time]}, [:status, :process_time])
+    {:ok, task} = Repo.update(changeset)
+  end
+
+  defp handle_completed(payload, task) do
+    data = payload[:data]
+    changeset = status_changeset(
+                  task, 
+                  %{
+                    status: payload[:status],
+                    task_total_time: calc_task_total_time(task, data[:upload_time]),
+                    total_time: calc_total_time(task, data[:upload_time])
+                  },
+                  [:status, :task_total_time, :total_time, :result]
+                )
+    {:ok, task}
+  end
+
+  defp handle_error(payload, task) do
+  end
+
+  defp handle_abort(payload, task) do
+  end
+
+  defp calc_total_time(task, upload_time) do
+    :calendar.datetime_to_gregorian_seconds(task.queue_time) + calc_task_total_time(task, upload_time)
+  end
+
+  defp calc_task_total_time(task, upload_time) do
+    :calendar.datetime_to_gregorian_seconds(task.download_time) +
+    :calendar.datetime_to_gregorian_seconds(task.process_time) +
+    :calendar.datetime_to_gregorian_seconds(upload_time)
+  end
+
+  defp handle_error(payload, task) do
+  end
+
+  defp handle_aborted(payload, task) do
   end
 
   defp transform_url(:source, model) do

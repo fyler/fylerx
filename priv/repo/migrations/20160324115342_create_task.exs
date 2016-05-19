@@ -14,6 +14,7 @@ defmodule Fyler.Repo.Migrations.CreateTask do
       add :data, :map
       add :result, :map
       add :project_id, :integer
+      add :file_size, :integer
 
       # stats
       add :queue_time, :integer
@@ -21,6 +22,7 @@ defmodule Fyler.Repo.Migrations.CreateTask do
       add :process_time, :integer
       add :upload_time, :integer
       add :total_time, :integer
+      add :total_task_time, :integer
 
       timestamps
     end
