@@ -18,13 +18,13 @@ defmodule Fyler.UserTest do
 
   test "#create_changeset email is incorrect" do
     attrs = %{ @valid_create_attrs | email: "bla-bla" }
-    assert {:email, "has invalid format"} in errors_on(%User{}, attrs, :create_changeset)
+    assert {:email, {"has invalid format", []}} in errors_on(%User{}, attrs, :create_changeset)
   end
 
   test "#create_changeset email is taken" do
-    create(:user, email: "john@fyler.io")
+    insert(:user, email: "john@fyler.io")
     { :error, changeset } = Repo.insert(User.create_changeset(%User{}, @valid_create_attrs))
-    assert {:email, "has already been taken"} in changeset.errors
+    assert {:email,  {"has already been taken", []}} in changeset.errors
   end
 
   test "#login_changeset is valid" do
@@ -35,8 +35,8 @@ defmodule Fyler.UserTest do
   end
 
   test "#login_changeset password is incorrect" do
-    create(:user)
+    insert(:user)
     attrs = %{ @valid_create_attrs | password: "bla-bla" }
-    assert {:password, "is incorrect"} in errors_on(%User{}, attrs, :login_changeset)
+    assert {:password, {"is incorrect", []}} in errors_on(%User{}, attrs, :login_changeset)
   end
 end

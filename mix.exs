@@ -35,16 +35,16 @@ defmodule Fyler.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.1.4"},
+    [{:phoenix, "~> 1.2"},
      {:postgrex, ">= 0.0.0"},
-     {:phoenix_ecto, "~> 2.0"},
+     {:phoenix_ecto, "~> 3.0"},
      {:cowboy, "~> 1.0"},
      {:comeonin, "~>2.0"},
      {:joken, "~>1.1.0"},
-     {:secure_random, "~> 0.2"},
-     {:scrivener, "~> 1.0"},
+     {:secure_random, "~> 0.5"},
+     {:scrivener_ecto, "~> 1.0"},
      {:exrabbit, github: "d0rc/exrabbit"},
-     {:ex_machina, "~> 0.6.1", only: :test}]
+     {:ex_machina, "~> 1.0", only: :test}]
   end
 
   # Aliases are shortcut or tasks specific to the current project.

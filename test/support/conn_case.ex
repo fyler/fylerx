@@ -12,7 +12,6 @@ defmodule Fyler.ConnCase do
   inside a transaction which is reset at the beginning
   of the test unless the test case is marked as async.
   """
-
   use ExUnit.CaseTemplate
 
   using do
@@ -35,19 +34,21 @@ defmodule Fyler.ConnCase do
   end
 
   setup tags do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Fyler.Repo)
+
     unless tags[:async] do
-      Ecto.Adapters.SQL.restart_test_transaction(Fyler.Repo, [])
+      Ecto.Adapters.SQL.Sandbox.mode(Fyler.Repo, {:shared, self()})
     end
 
-    {:ok, conn: Phoenix.ConnTest.conn()}
+    {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
   def api_conn() do
-    Phoenix.ConnTest.conn()
+    Phoenix.ConnTest.build_conn()
   end
 
   def api_conn(token, realm \\ "Bearer") do
-    Phoenix.ConnTest.conn()
+    Phoenix.ConnTest.build_conn()
     |> Phoenix.ConnTest.put_req_header("authorization", realm <> " " <> token)
   end
 end

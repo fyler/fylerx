@@ -22,6 +22,8 @@ defmodule Fyler.Router do
     patch "/projects/:id/revoke", Fyler.ProjectsController, :revoke
 
     resources "/tasks", Fyler.TasksController, only: [:index]
+
+    resources "/presets", Fyler.PresetsController
   end
 
   scope "/api", alias: Fyler.Api, as: :api do

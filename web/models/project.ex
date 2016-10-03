@@ -7,7 +7,7 @@ defmodule Fyler.Project do
     field :settings, :map
 
     has_many :tasks, Fyler.Task
-    timestamps
+    timestamps()
   end
 
   @required_fields ~w(name)

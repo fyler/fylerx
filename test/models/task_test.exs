@@ -3,27 +3,29 @@ defmodule Fyler.TaskTest do
   import  Fyler.ExUnit.Helpers
   alias   Fyler.Task
 
-  @valid_create_attrs %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"}
+  defp valid_create_attrs do
+    %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"}
+  end
 
   test "#insert creates with default status" do
-    changeset = Task.create_changeset(%Task{}, @valid_create_attrs)
+    changeset = Task.create_changeset(%Task{}, valid_create_attrs)
     task = Fyler.Repo.insert!(changeset)
     assert task.status == "idle"
   end
 
   test "#create_changeset with valid attributes" do
-    changeset = Task.create_changeset(%Task{}, @valid_create_attrs)
+    changeset = Task.create_changeset(%Task{}, valid_create_attrs)
     assert changeset.valid?
   end
 
   test "#create_changeset creates category" do
-    changeset = Task.create_changeset(%Task{}, @valid_create_attrs)
+    changeset = Task.create_changeset(%Task{}, valid_create_attrs)
     assert changeset.valid?
     assert changeset.changes[:category] == "ffmpeg"
   end
 
   test "#create_changeset with pipe type" do
-    params = %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "pipe", category: "document"}
+    params = %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "pipe", category: "document"}
     changeset = Task.create_changeset(%Task{}, params)
     assert changeset.valid?
     assert changeset.changes[:category] == "document"
@@ -31,48 +33,48 @@ defmodule Fyler.TaskTest do
   end
 
   test "#create_changeset with pipe (without category)" do
-    params = %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "pipe"}
+    params = %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "pipe"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
-    assert changeset.errors == [category: "can't be blank"]
+    assert changeset.errors == [category: {"can't be blank", []}]
   end
 
   test "#create_changeset without type" do
-    params = %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi"}
+    params = %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
-    assert changeset.errors == [type: "can't be blank", category: "can't be blank"]
+    assert changeset.errors == [type: {"can't be blank", []}, category: {"can't be blank", []}]
   end
 
   test "#create_changeset without project" do
     params = %{source: "http://foo.example.com/files/foo.avi", type: "pipe", category: "document"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
-    assert changeset.errors == [project_id: "can't be blank"]
+    assert changeset.errors == [project_id: {"can't be blank", []}]
   end
 
   test "#create_changeset when type not inclusion" do
-    params = %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "foo"}
+    params = %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "foo"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
-    assert changeset.errors == [type: "is invalid"]
+    assert changeset.errors == [type: {"is invalid", []}]
   end
 
   test "#create_changeset when URL is invalid" do
-    params = %{project_id: create(:project).id, source: ".foo/bar", type: "video"}
+    params = %{project_id: insert(:project).id, source: ".foo/bar", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     refute changeset.valid?
-    assert changeset.errors == [source: "has invalid format"]
+    assert changeset.errors == [source: {"has invalid format", []}]
   end
 
   test "#create_changeset when URL is s3" do
-    params = %{project_id: create(:project).id, source: "s3://foo.example.com/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project).id, source: "s3://foo.example.com/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     assert changeset.valid?
   end
 
   test "#transform with default output" do
-    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
     
@@ -98,7 +100,7 @@ defmodule Fyler.TaskTest do
 
   test "#transform with output" do
     params = %{
-      project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id,
+      project_id: insert(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id,
       source: "s3://buckettest/my/files/foo.avi",
       data: %{"output" => "s3://buckettest/my/files/converted"},
       type: "video"
@@ -116,16 +118,16 @@ defmodule Fyler.TaskTest do
   end
 
   test "#transform when source without protocol" do
-    params = %{project_id: create(:project).id, source: "buckettest.com/my/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project).id, source: "buckettest.com/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
 
-    assert %{source: source, output: output} = Task.transform(task)
+    assert %{source: source, output: _output} = Task.transform(task)
     assert source[:prefix] == "buckettest.com/my/files/foo.avi"
   end
 
   test "#mark_as change status" do
-    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
 
@@ -134,7 +136,7 @@ defmodule Fyler.TaskTest do
   end
 
   test "#mark_as does not change status if it's undefined" do
-    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
 
@@ -142,7 +144,7 @@ defmodule Fyler.TaskTest do
   end
 
   test "#send_to_queue" do
-    params = %{project_id: create(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
+    params = %{project_id: insert(:project, settings: %{aws_id: "123", aws_secret: "dais0f9sd"}).id, source: "s3://buckettest/my/files/foo.avi", type: "video"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
     
@@ -150,7 +152,7 @@ defmodule Fyler.TaskTest do
   end
 
   test "#send_to_queue changes count" do
-    params = %{project_id: create(:project, settings: %{aws_id: "594", aws_secret: "secret_key1223"}).id, source: "s3://testbucket/music/metallica.mp3", type: "audio"}
+    params = %{project_id: insert(:project, settings: %{aws_id: "594", aws_secret: "secret_key1223"}).id, source: "s3://testbucket/music/metallica.mp3", type: "audio"}
     changeset = Task.create_changeset(%Task{}, params)
     {:ok, task} = Repo.insert(changeset)
 

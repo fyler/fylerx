@@ -5,7 +5,7 @@ defmodule Fyler.ProjectsControllerTest do
   import Fyler.ExUnit.AuthHelpers
 
   setup do
-    {:ok, [auth_conn: auth_conn(conn(), create(:user))]}
+    {:ok, [auth_conn: auth_conn(build_conn(), insert(:user))]}
   end
 
   test "POST create", %{auth_conn: auth_conn} do
@@ -20,7 +20,7 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "POST create (not_auth)" do
-    response = post conn(), "/admin/projects", project: %{name: "Foo"}
+    response = post build_conn(), "/admin/projects", project: %{name: "Foo"}
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
@@ -41,13 +41,13 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "GET show (not_auth)" do
-    project = create(:project)
-    response = get conn, "/admin/projects/#{project.id}"
+    project = insert(:project)
+    response = get build_conn(), "/admin/projects/#{project.id}"
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
   test "GET show", %{auth_conn: auth_conn} do
-    project = create(:project)
+    project = insert(:project)
     response = get auth_conn, "/admin/projects/#{project.id}"
     id = project.id
     assert %{"project" => %{"name" => _name, "id" => ^id, "api_key" => _key, "settings" => %{}}} = json_response(response, 200)
@@ -60,7 +60,7 @@ defmodule Fyler.ProjectsControllerTest do
   end
 
   test "PATCH update", %{auth_conn: auth_conn} do
-    project = create(:project, name: "Foo", api_key: "12345")
+    project = insert(:project, name: "Foo", api_key: "12345")
     params = %{name: "updated", api_key: "123"}
 
     response = patch auth_conn, "/admin/projects/#{project.id}", project: params
@@ -69,21 +69,21 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "PATCH update (not_auth)" do
-    project = create(:project, name: "Foo", api_key: "12345")
+    project = insert(:project, name: "Foo", api_key: "12345")
     params = %{name: "updated"}
-    response = patch conn(), "/admin/projects/#{project.id}", project: params
+    response = patch build_conn(), "/admin/projects/#{project.id}", project: params
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
   test "DELETE delete", %{auth_conn: auth_conn} do
-    project = create(:project, name: "Foo")
+    project = insert(:project, name: "Foo")
     response = delete auth_conn, "/admin/projects/#{project.id}"
 
     assert %{"project" => %{"name" => "Foo"}} = json_response(response, 200)
   end
 
   test "DELETE delete (with database assertion)", %{auth_conn: auth_conn} do
-    project = create(:project, name: "Foo")
+    project = insert(:project, name: "Foo")
     event = fn -> delete(auth_conn, "/admin/projects/#{project.id}") end
     change = fn -> Fyler.Project.count_records end
     
@@ -92,13 +92,13 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "DELETE delete (not_auth)" do
-    project = create(:project, name: "Foo")
-    response = delete conn(), "/admin/projects/#{project.id}"
+    project = insert(:project, name: "Foo")
+    response = delete build_conn(), "/admin/projects/#{project.id}"
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
   test "PATCH refresh", %{auth_conn: auth_conn} do
-    project = create(:project, name: "Foo", api_key: "12345")
+    project = insert(:project, name: "Foo", api_key: "12345")
     assert project.api_key == "12345"
 
     response = patch auth_conn, "/admin/projects/#{project.id}/refresh"
@@ -109,13 +109,13 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "PATCH refresh (not_auth)" do
-    project = create(:project, name: "Foo", api_key: "12345")
-    response = patch conn(), "/admin/projects/#{project.id}/refresh"
+    project = insert(:project, name: "Foo", api_key: "12345")
+    response = patch build_conn(), "/admin/projects/#{project.id}/refresh"
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
   test "PATCH revoke", %{auth_conn: auth_conn} do
-    project = create(:project, name: "Foo", api_key: "12345")
+    project = insert(:project, name: "Foo", api_key: "12345")
     assert project.api_key == "12345"
 
     response = patch auth_conn, "/admin/projects/#{project.id}/revoke"
@@ -124,8 +124,8 @@ defmodule Fyler.ProjectsControllerTest do
 
   @tag :not_auth
   test "PATCH revoke (not_auth)" do
-    project = create(:project, name: "Foo", api_key: "12345")
-    response = patch conn(), "/admin/projects/#{project.id}/revoke"
+    project = insert(:project, name: "Foo", api_key: "12345")
+    response = patch build_conn(), "/admin/projects/#{project.id}/revoke"
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 end

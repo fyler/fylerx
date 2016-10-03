@@ -5,6 +5,10 @@
 # is restricted to this project.
 use Mix.Config
 
+# General application configuration
+config :fyler,
+  ecto_repos: [Fyler.Repo]
+
 # Configures the endpoint
 config :fyler, Fyler.Endpoint,
   url: [host: "localhost"],

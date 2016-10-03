@@ -15,5 +15,5 @@ config :fyler, Fyler.Repo,
   username: "fyler",
   password: "fyler",
   database: "fyler_test",
-  hostname: "localhost",
+  hostname: "postgres",
   pool: Ecto.Adapters.SQL.Sandbox

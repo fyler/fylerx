@@ -18,9 +18,10 @@ defmodule Fyler.Task do
     field :upload_time, :integer
     field :total_time, :integer
     field :total_task_time, :integer
-
+    field :inserted_at, :integer, default: :os.system_time(:milli_seconds)
+    
     belongs_to :project, Fyler.Project
-    timestamps
+    # timestamps
   end
 
   @statuses default: "idle",
@@ -165,8 +166,8 @@ defmodule Fyler.Task do
 
   defp handle_downloading(payload, task) do
     data = payload[:data]
-    inserted_sec = :calendar.datetime_to_gregorian_seconds(Ecto.DateTime.to_erl(task.inserted_at))
-    now_sec = :calendar.datetime_to_gregorian_seconds(:calendar.now_to_datetime(:erlang.timestamp()))
+    inserted_sec = task.inserted_at
+    now_sec = :os.system_time(:milli_seconds)
     queue_time = now_sec - inserted_sec
     changeset = status_changeset(task, %{worker_id: data[:worker_id], status: payload[:status], queue_time: queue_time}, [:status, :worker_id, :queue_time])
     {:ok, task} = Repo.update(changeset)
@@ -205,13 +206,11 @@ defmodule Fyler.Task do
   end
 
   defp calc_total_time(task, upload_time) do
-    :calendar.datetime_to_gregorian_seconds(task.queue_time) + calc_task_total_time(task, upload_time)
+    task.queue_time + calc_task_total_time(task, upload_time)
   end
 
   defp calc_task_total_time(task, upload_time) do
-    :calendar.datetime_to_gregorian_seconds(task.download_time) +
-    :calendar.datetime_to_gregorian_seconds(task.process_time) +
-    :calendar.datetime_to_gregorian_seconds(upload_time)
+    task.download_time + task.process_time + upload_time
   end
 
   defp handle_error(payload, task) do
@@ -257,12 +256,12 @@ defmodule Fyler.Task do
         # for example s3://testbucket/folder/file.mp3
         # bucket is <testbucket>
         # prefix is <folder/file.mp3>
-        words = String.split(path, "/")
+        [bucket | prefix] = String.split(path, "/")
         
         out
         |> Map.put(:type, type)
-        |> Map.put(:bucket, hd(words))
-        |> Map.put(:prefix, Enum.join(tl(words), "/"))
+        |> Map.put(:bucket, bucket)
+        |> Map.put(:prefix, Enum.join(prefix, "/"))
       nil ->
         Map.put(out, :prefix, path)
     end

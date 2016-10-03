@@ -27,5 +27,5 @@ config :fyler, Fyler.Repo,
   username: "fyler",
   password: "fyler",
   database: "fyler_dev",
-  hostname: "localhost",
+  hostname: "postgres",
   pool_size: 10

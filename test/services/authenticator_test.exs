@@ -4,12 +4,12 @@ defmodule Fyler.AuthenticatorTest do
   alias Fyler.Authenticator
 
   test "#authenticate returns {ok, token} with valid credentials" do
-    user = create(:user)
+    user = insert(:user)
     assert {:ok, _} = Authenticator.authenticate(%{ "email" => user.email, "password" => "qwerty" })
   end
 
   test "#authenticate returns error with wrong credentials" do
-    user = create(:user)
+    user = insert(:user)
     assert {:error, :invalid_credentials} = Authenticator.authenticate(%{ "email" => user.email })
   end
 
@@ -22,7 +22,7 @@ defmodule Fyler.AuthenticatorTest do
   end
 
   test "#verify valid token" do
-    user = create(:user)
+    user = insert(:user)
     assert {:ok, token} = Authenticator.authenticate(%{ "email" => user.email, "password" => "qwerty" })
 
     assert {:ok, claims} = Authenticator.verify(token)

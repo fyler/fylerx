@@ -5,8 +5,8 @@ defmodule Fyler.Api.TasksControllerTest do
   import Fyler.ExUnit.AuthHelpers
 
   setup do
-    project = create(:project)
-    {:ok, [auth_conn: auth_with_token(conn(), project.api_key)]}
+    project = insert(:project)
+    {:ok, [auth_conn: auth_with_token(build_conn(), project.api_key)]}
   end
 
   test "POST #create", %{auth_conn: auth_conn} do
@@ -50,12 +50,12 @@ defmodule Fyler.Api.TasksControllerTest do
       data: %{ format: "mp4" }
     }
 
-    response = post conn(), "/api/tasks", tasks: params
+    response = post build_conn(), "/api/tasks", tasks: params
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 
   test "GET #show", %{auth_conn: auth_conn} do
-    task = Fyler.Repo.insert! Fyler.Task.create_changeset(%Fyler.Task{}, %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"})
+    task = Fyler.Repo.insert! Fyler.Task.create_changeset(%Fyler.Task{}, %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"})
     response = get auth_conn, "/api/tasks/#{task.id}"
     id = task.id
     assert %{"task" => %{"id" => ^id, "type" => "video", "category" => "ffmpeg"}} = json_response(response, 200)
@@ -63,8 +63,8 @@ defmodule Fyler.Api.TasksControllerTest do
 
   @tag :not_auth
   test "GET #show (without auth)" do
-    task = Fyler.Repo.insert! Fyler.Task.create_changeset(%Fyler.Task{}, %{project_id: create(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"})
-    response = get conn(), "/api/tasks/#{task.id}"
+    task = Fyler.Repo.insert! Fyler.Task.create_changeset(%Fyler.Task{}, %{project_id: insert(:project).id, source: "http://foo.example.com/files/foo.avi", type: "video"})
+    response = get build_conn(), "/api/tasks/#{task.id}"
     assert %{"errors" => "bad_token"} = json_response(response, 403)
   end
 end

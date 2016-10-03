@@ -9,7 +9,8 @@ defmodule Fyler.User do
     field :email, :string
     field :encrypted_password, :string
     field :password, :string, virtual: true
-    timestamps
+
+    timestamps()
   end
 
   def from_email(nil), do: { :error, :not_found }

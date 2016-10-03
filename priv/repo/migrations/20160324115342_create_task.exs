@@ -24,7 +24,8 @@ defmodule Fyler.Repo.Migrations.CreateTask do
       add :total_time, :integer
       add :total_task_time, :integer
 
-      timestamps
+      add :inserted_at, :bigint, default: :os.system_time(:milli_seconds)
+      # timestamps
     end
 
     create index(:tasks, [:project_id])

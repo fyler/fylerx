@@ -19,7 +19,6 @@ defmodule Fyler.Web do
   def model do
     quote do
       use Ecto.Schema
-      use Ecto.Model.Callbacks
 
       alias Fyler.Repo
       

@@ -6,7 +6,7 @@ defmodule Fyler.Factory do
   alias Fyler.Project
   alias Fyler.Task
 
-  def factory(:user) do
+  def user_factory() do
     %User{
       name: sequence(:name, &"user-#{&1}"),
       email: sequence(:email, &"email-#{&1}@fyler.com"),
@@ -15,7 +15,7 @@ defmodule Fyler.Factory do
     }
   end
 
-  def factory(:project) do
+  def project_factory() do
     %Project{
       name: sequence(:name, &"project-#{&1}"),
       settings: %{},
@@ -23,7 +23,7 @@ defmodule Fyler.Factory do
     }
   end
 
-  def factory(:task) do
+  def task_factory() do
     %Task{
       source: "http://foo.example.com/files/foo.avi",
       type: "video"
