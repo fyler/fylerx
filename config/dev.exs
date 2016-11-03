@@ -29,3 +29,7 @@ config :fyler, Fyler.Repo,
   database: "fyler_dev",
   hostname: "postgres",
   pool_size: 10
+
+config :fyler, :rabbit_settings,
+  port: "5672",
+  host: 'rabbitmq'

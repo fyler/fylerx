@@ -10,10 +10,10 @@ WORKDIR /code/fylerx
 RUN useradd -m deplo
 RUN chown -R deplo /code/fylerx
 
-ENV MIX_ENV test 
+ENV MIX_ENV dev
 RUN mix deps.get --only $MIX_ENV
 RUN mix compile
 
 ENV PORT 4001
 
-CMD ["mix", "phoenix.server"] 
+CMD ["mix", "do", "ecto.migrate", ",", "phoenix.server"]
